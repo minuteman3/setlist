@@ -212,39 +212,60 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
+            let startY = 20; // Initial Y position
+            const margin = 20; // Left margin
+            const pageWidth = doc.internal.pageSize.width;
+            const contentWidth = pageWidth - (margin * 2);
+
             // Add logo if uploaded
             if (uploadedLogo) {
-                doc.addImage(uploadedLogo, 'PNG', 20, 10, 40, 40);
+                const logoSize = 40;
+                doc.addImage(uploadedLogo, 'PNG', margin, startY, logoSize, logoSize);
+                // If there's a logo, move the title to the right of it
+                doc.setFontSize(24);
+                doc.setTextColor(46, 125, 50); // Green color
+                doc.text(playlistName, logoSize + margin + 10, startY + 20, { align: 'left' });
+
+                // Add creation date under the title, aligned with it
+                doc.setFontSize(10);
+                doc.setTextColor(128, 128, 128); // Gray color
+                const date = new Date().toLocaleDateString();
+                doc.text(`Created on ${date}`, logoSize + margin + 10, startY + 30);
+
+                // Move starting position for songs below the logo
+                startY += logoSize + 20;
+            } else {
+                // If no logo, center the title
+                doc.setFontSize(24);
+                doc.setTextColor(46, 125, 50);
+                doc.text(playlistName, pageWidth / 2, startY + 20, { align: 'center' });
+
+                // Center the date
+                doc.setFontSize(10);
+                doc.setTextColor(128, 128, 128);
+                const date = new Date().toLocaleDateString();
+                doc.text(`Created on ${date}`, pageWidth / 2, startY + 30, { align: 'center' });
+
+                startY += 40;
             }
 
-            // Add playlist title
-            doc.setFontSize(24);
-            doc.setTextColor(46, 125, 50); // Green color
-            doc.text(playlistName, 105, 30, { align: 'center' });
-
-            // Add creation date
-            doc.setFontSize(10);
-            doc.setTextColor(128, 128, 128); // Gray color
-            const date = new Date().toLocaleDateString();
-            doc.text(`Created on ${date}`, 105, 38, { align: 'center' });
-
             // Add songs with alternating background
-            let yPosition = 50;
+            let yPosition = startY;
             selectedSongs.forEach((song, index) => {
                 // Add light gray background for even rows
                 if (index % 2 === 0) {
                     doc.setFillColor(245, 245, 245);
-                    doc.rect(20, yPosition - 5, 170, 10, 'F');
+                    doc.rect(margin, yPosition - 5, contentWidth, 10, 'F');
                 }
 
                 doc.setFontSize(12);
                 doc.setTextColor(0, 0, 0);
-                doc.text(`${index + 1}.`, 20, yPosition);
+                doc.text(`${index + 1}.`, margin, yPosition);
                 doc.setFont(undefined, 'bold');
-                doc.text(song.name, 30, yPosition);
+                doc.text(song.name, margin + 10, yPosition);
                 doc.setFont(undefined, 'normal');
                 doc.setTextColor(128, 128, 128);
-                doc.text(`- ${song.artist}`, 30 + doc.getTextWidth(song.name) + 5, yPosition);
+                doc.text(`- ${song.artist}`, margin + 10 + doc.getTextWidth(song.name) + 5, yPosition);
 
                 yPosition += 10;
             });
@@ -256,12 +277,12 @@
             });
 
             const qrSize = 50;
-            const qrX = 105 - (qrSize / 2);
+            const qrX = pageWidth / 2 - (qrSize / 2);
             doc.addImage(qr, 'PNG', qrX, yPosition + 10, qrSize, qrSize);
 
             doc.setFontSize(10);
             doc.setTextColor(128, 128, 128);
-            doc.text('Scan to open in Spotify', 105, yPosition + qrSize + 20, { align: 'center' });
+            doc.text('Scan to open in Spotify', pageWidth / 2, yPosition + qrSize + 20, { align: 'center' });
 
             // Save PDF
             doc.save(`${playlistName}.pdf`);
