@@ -213,7 +213,7 @@
             const doc = new jsPDF();
 
             let startY = 20; // Initial Y position
-            const margin = 20; // Left margin
+            const margin = 30; // Increased left margin
             const pageWidth = doc.internal.pageSize.width;
             const contentWidth = pageWidth - (margin * 2);
 
@@ -221,16 +221,16 @@
             if (uploadedLogo) {
                 const logoSize = 40;
                 doc.addImage(uploadedLogo, 'PNG', margin, startY, logoSize, logoSize);
-                // If there's a logo, move the title to the right of it
+                // If there's a logo, move the title to the right of it with more spacing
                 doc.setFontSize(24);
                 doc.setTextColor(46, 125, 50); // Green color
-                doc.text(playlistName, logoSize + margin + 10, startY + 20, { align: 'left' });
+                doc.text(playlistName, logoSize + margin + 20, startY + 20, { align: 'left' }); // Added more space after logo
 
                 // Add creation date under the title, aligned with it
                 doc.setFontSize(10);
                 doc.setTextColor(128, 128, 128); // Gray color
                 const date = new Date().toLocaleDateString();
-                doc.text(`Created on ${date}`, logoSize + margin + 10, startY + 30);
+                doc.text(`Created on ${date}`, logoSize + margin + 20, startY + 30); // Kept aligned with title
 
                 // Move starting position for songs below the logo
                 startY += logoSize + 20;
