@@ -19,32 +19,40 @@
         </button>
     </div>
 
-    <div id="search-section" class="hidden max-w-3xl mx-auto p-6">
-        <div class="mb-6 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
-            <input type="file" id="logo-upload" accept="image/*" class="hidden">
-            <label for="logo-upload" class="cursor-pointer">
-                <div id="logo-preview" class="mx-auto mb-2 h-32 flex items-center justify-center">
-                    <span class="text-gray-500">Drag and drop a logo here, or click to upload</span>
+    <div id="search-section" class="hidden max-w-6xl mx-auto p-6">
+        <div class="md:flex md:gap-6">
+            <!-- Left column -->
+            <div class="md:w-1/2">
+                <div class="mb-6 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                    <input type="file" id="logo-upload" accept="image/*" class="hidden">
+                    <label for="logo-upload" class="cursor-pointer">
+                        <div id="logo-preview" class="mx-auto mb-2 h-32 flex items-center justify-center">
+                            <span class="text-gray-500">Drag and drop a logo here, or click to upload</span>
+                        </div>
+                    </label>
                 </div>
-            </label>
-        </div>
 
-        <input type="text" id="search-box" placeholder="Search for songs..."
-            class="w-full p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 mb-6">
+                <input type="text" id="search-box" placeholder="Search for songs..."
+                    class="w-full p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 mb-6">
 
-        <ul id="search-results" class="mb-8 space-y-2"></ul>
+                <ul id="search-results" class="mb-8 space-y-2"></ul>
+            </div>
 
-        <div class="bg-white rounded-lg p-6 shadow-sm">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Your Playlist</h2>
-            <input type="text" id="playlist-name" placeholder="Enter playlist name (required)" required
-                class="w-full p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
+            <!-- Right column -->
+            <div class="md:w-1/2">
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Your Playlist</h2>
+                    <input type="text" id="playlist-name" placeholder="Enter playlist name (required)" required
+                        class="w-full p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
 
-            <ul id="playlist" class="space-y-2 mb-6"></ul>
+                    <ul id="playlist" class="space-y-2 mb-6"></ul>
 
-            <button id="create-playlist-button"
-                class="w-full px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
-                Create Playlist & Generate PDF
-            </button>
+                    <button id="create-playlist-button"
+                        class="w-full px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
+                        Create Playlist & Generate PDF
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
