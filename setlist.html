@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Playlist Creator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <div id="login-section" class="max-w-3xl mx-auto p-6">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Spotify Playlist Creator</h1>
+        <button id="login-button"
+            class="w-full md:w-auto mx-auto block px-6 py-3 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 transition-colors">
+            Login with Spotify
+        </button>
+    </div>
+
+    <div id="search-section" class="hidden max-w-3xl mx-auto p-6">
+        <div class="mb-6 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+            <input type="file" id="logo-upload" accept="image/*" class="hidden">
+            <label for="logo-upload" class="cursor-pointer">
+                <div id="logo-preview" class="mx-auto mb-2 h-32 flex items-center justify-center">
+                    <span class="text-gray-500">Drag and drop a logo here, or click to upload</span>
+                </div>
+            </label>
+        </div>
+
+        <input type="text" id="search-box" placeholder="Search for songs..."
+            class="w-full p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 mb-6">
+
+        <ul id="search-results" class="mb-8 space-y-2"></ul>
+
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Your Playlist</h2>
+            <input type="text" id="playlist-name" placeholder="Enter playlist name (required)" required
+                class="w-full p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
+
+            <ul id="playlist" class="space-y-2 mb-6"></ul>
+
+            <button id="create-playlist-button"
+                class="w-full px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
+                Create Playlist & Generate PDF
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const clientId = 'ae7f423bb8af444eb5407e92650e6f32';
+        const redirectUri = 'http://localhost:8000/playlist.html';
+        let accessToken = null;
+        let selectedSongs = [];
+        let uploadedLogo = null;
+
+        // Login handling
+        document.getElementById('login-button').addEventListener('click', () => {
+            const scope = 'playlist-modify-public playlist-modify-private';
+            window.location.href = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
+        });
+
+        // Check if we're returning from Spotify auth
+        if (window.location.hash) {
+            const params = new URLSearchParams(window.location.hash.substring(1));
+            accessToken = params.get('access_token');
+            if (accessToken) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('search-section').classList.remove('hidden');
+            }
+        }
+
+        // Search functionality
+        let searchTimeout;
+        document.getElementById('search-box').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => searchSongs(e.target.value), 500);
+        });
+
+        async function searchSongs(query) {
+            if (!query) return;
+
+            const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            const data = await response.json();
+            const searchResults = document.getElementById('search-results');
+            searchResults.innerHTML = '';
+
+            data.tracks.items.forEach(track => {
+                const li = createSongItem(track);
+                searchResults.appendChild(li);
+            });
+        }
+
+        function createSongItem(track) {
+            const li = document.createElement('li');
+            li.className = 'flex items-center justify-between p-4 bg-white rounded-lg shadow-sm';
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'flex flex-col';
+
+            const songName = document.createElement('span');
+            songName.className = 'font-semibold text-gray-800';
+            songName.textContent = track.name;
+
+            const artistName = document.createElement('span');
+            artistName.className = 'text-sm text-gray-500';
+            artistName.textContent = track.artists[0].name;
+
+            textDiv.appendChild(songName);
+            textDiv.appendChild(artistName);
+
+            const button = document.createElement('button');
+            button.className = 'px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors';
+            button.textContent = 'Add';
+            button.addEventListener('click', () => {
+                addToPlaylist(track.id, track.name, track.artists[0].name);
+            });
+
+            li.appendChild(textDiv);
+            li.appendChild(button);
+            return li;
+        }
+
+        function addToPlaylist(trackId, name, artist) {
+            selectedSongs.push({ id: trackId, name, artist });
+            renderPlaylist();
+        }
+
+        function removeFromPlaylist(trackId) {
+            selectedSongs = selectedSongs.filter(song => song.id !== trackId);
+            renderPlaylist();
+        }
+
+        function renderPlaylist() {
+            const playlist = document.getElementById('playlist');
+            playlist.innerHTML = '';
+            selectedSongs.forEach(song => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg';
+
+                const textDiv = document.createElement('div');
+                textDiv.className = 'flex flex-col';
+
+                const songName = document.createElement('span');
+                songName.className = 'font-semibold text-gray-800';
+                songName.textContent = song.name;
+
+                const artistName = document.createElement('span');
+                artistName.className = 'text-sm text-gray-500';
+                artistName.textContent = song.artist;
+
+                textDiv.appendChild(songName);
+                textDiv.appendChild(artistName);
+
+                const button = document.createElement('button');
+                button.className = 'px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors';
+                button.textContent = 'Remove';
+                button.onclick = () => removeFromPlaylist(song.id);
+
+                li.appendChild(textDiv);
+                li.appendChild(button);
+                playlist.appendChild(li);
+            });
+        }
+
+        document.getElementById('create-playlist-button').addEventListener('click', async () => {
+            const playlistName = document.getElementById('playlist-name').value.trim();
+
+            if (!playlistName) {
+                alert('Please enter a playlist name');
+                return;
+            }
+
+            // Create playlist
+            const response = await fetch('https://api.spotify.com/v1/me', {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const user = await response.json();
+
+            const playlistResponse = await fetch(`https://api.spotify.com/v1/users/${user.id}/playlists`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: playlistName,
+                    public: true
+                })
+            });
+            const playlist = await playlistResponse.json();
+
+            // Add tracks to playlist
+            await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    uris: selectedSongs.map(song => `spotify:track:${song.id}`)
+                })
+            });
+
+            // Generate PDF with improved styling
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Add logo if uploaded
+            if (uploadedLogo) {
+                doc.addImage(uploadedLogo, 'PNG', 20, 10, 40, 40);
+            }
+
+            // Add playlist title
+            doc.setFontSize(24);
+            doc.setTextColor(46, 125, 50); // Green color
+            doc.text(playlistName, 105, 30, { align: 'center' });
+
+            // Add creation date
+            doc.setFontSize(10);
+            doc.setTextColor(128, 128, 128); // Gray color
+            const date = new Date().toLocaleDateString();
+            doc.text(`Created on ${date}`, 105, 38, { align: 'center' });
+
+            // Add songs with alternating background
+            let yPosition = 50;
+            selectedSongs.forEach((song, index) => {
+                // Add light gray background for even rows
+                if (index % 2 === 0) {
+                    doc.setFillColor(245, 245, 245);
+                    doc.rect(20, yPosition - 5, 170, 10, 'F');
+                }
+
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`${index + 1}.`, 20, yPosition);
+                doc.setFont(undefined, 'bold');
+                doc.text(song.name, 30, yPosition);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(128, 128, 128);
+                doc.text(`- ${song.artist}`, 30 + doc.getTextWidth(song.name) + 5, yPosition);
+
+                yPosition += 10;
+            });
+
+            // Add QR code with label
+            const playlistUrl = playlist.external_urls.spotify;
+            const qr = await new Promise(resolve => {
+                QRCode.toDataURL(playlistUrl, { margin: 1 }, (err, url) => resolve(url));
+            });
+
+            const qrSize = 50;
+            const qrX = 105 - (qrSize / 2);
+            doc.addImage(qr, 'PNG', qrX, yPosition + 10, qrSize, qrSize);
+
+            doc.setFontSize(10);
+            doc.setTextColor(128, 128, 128);
+            doc.text('Scan to open in Spotify', 105, yPosition + qrSize + 20, { align: 'center' });
+
+            // Save PDF
+            doc.save(`${playlistName}.pdf`);
+        });
+
+        // Logo upload handling
+        const logoUpload = document.getElementById('logo-upload');
+        const logoPreview = document.getElementById('logo-preview');
+
+        logoUpload.addEventListener('change', handleLogoUpload);
+        logoPreview.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            logoPreview.classList.add('border-green-500');
+        });
+
+        logoPreview.addEventListener('dragleave', () => {
+            logoPreview.classList.remove('border-green-500');
+        });
+
+        logoPreview.addEventListener('drop', (e) => {
+            e.preventDefault();
+            logoPreview.classList.remove('border-green-500');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleLogoFile(file);
+            }
+        });
+
+        function handleLogoUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleLogoFile(file);
+            }
+        }
+
+        function handleLogoFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                uploadedLogo = e.target.result;
+                logoPreview.innerHTML = `<img src="${uploadedLogo}" class="max-h-32 max-w-full mx-auto">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+
+</html>
