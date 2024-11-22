@@ -53,8 +53,9 @@
                     </label>
                 </div>
 
-                <input type="text" id="search-box" placeholder="Search for songs..."
-                    class="w-full p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 mb-6">
+                <input type="text" id="search-box"
+                    class="w-full p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 mb-6"
+                    placeholder="Search by song title, artist, or album...">
 
                 <ul id="search-results" class="mb-8 space-y-2"></ul>
             </div>
@@ -146,7 +147,7 @@
             li.className = 'flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm';
 
             const textDiv = document.createElement('div');
-            textDiv.className = 'flex flex-col';
+            textDiv.className = 'flex flex-col flex-grow mr-4';
 
             const songName = document.createElement('span');
             songName.className = 'font-semibold text-gray-800 dark:text-gray-100';
@@ -156,26 +157,29 @@
             artistName.className = 'text-sm text-gray-500 dark:text-gray-400';
             artistName.textContent = track.artists[0].name;
 
+            const albumName = document.createElement('span');
+            albumName.className = 'text-xs text-gray-400 dark:text-gray-500';
+            albumName.textContent = `from ${track.album.name}`;
+
             textDiv.appendChild(songName);
             textDiv.appendChild(artistName);
+            textDiv.appendChild(albumName);
 
             const button = document.createElement('button');
-            // Add disabled styles
             const isInPlaylist = selectedSongs.some(song => song.id === track.id);
             button.className = `px-4 py-2 rounded-lg transition-colors ${isInPlaylist
-                    ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed'
-                    : 'bg-green-500 hover:bg-green-600'
-                } text-white`;
+                ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed'
+                : 'bg-green-500 hover:bg-green-600'
+                } text-white flex-shrink-0`;
             button.textContent = isInPlaylist ? 'Added' : 'Add';
             button.disabled = isInPlaylist;
 
             if (!isInPlaylist) {
                 button.addEventListener('click', () => {
                     addToPlaylist(track.id, track.name, track.artists[0].name);
-                    // Update button state after adding
                     button.disabled = true;
                     button.textContent = 'Added';
-                    button.className = 'px-4 py-2 bg-gray-300 dark:bg-gray-600 text-white rounded-lg cursor-not-allowed';
+                    button.className = 'px-4 py-2 bg-gray-300 dark:bg-gray-600 text-white rounded-lg cursor-not-allowed flex-shrink-0';
                 });
             }
 
