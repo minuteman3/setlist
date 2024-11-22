@@ -46,7 +46,7 @@
                         class="w-full p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
 
                     <div class="max-h-[calc(100vh-20rem)] overflow-y-auto mb-6">
-                        <ul id="playlist" class="space-y-2"></ul>
+                        <ul id="playlist" class="space-y-2 transition-all duration-300"></ul>
                     </div>
 
                     <button id="create-playlist-button"
@@ -155,53 +155,69 @@
 
         function removeFromPlaylist(trackId) {
             const songElement = Array.from(document.getElementById('playlist').children)
-                .find(el => el.querySelector('[data-track-id="' + trackId + '"]'));
+                .find(el => el.querySelector(`[data-track-id="${trackId}"]`));
 
             if (songElement) {
-                // Fade out animation
-                songElement.classList.add('opacity-0');
+                songElement.classList.add('opacity-0', 'max-h-0');
                 setTimeout(() => {
                     selectedSongs = selectedSongs.filter(song => song.id !== trackId);
-                    renderPlaylist();
-                }, 300); // Match the duration of the transition
+                    songElement.remove();
+                }, 300);
             } else {
                 selectedSongs = selectedSongs.filter(song => song.id !== trackId);
-                renderPlaylist();
             }
         }
 
         function renderPlaylist() {
             const playlist = document.getElementById('playlist');
-            playlist.innerHTML = '';
+
+            // Instead of clearing innerHTML, remove only songs that aren't in the list anymore
+            const existingItems = Array.from(playlist.children);
+            existingItems.forEach(item => {
+                const trackId = item.querySelector('button').getAttribute('data-track-id');
+                if (!selectedSongs.find(song => song.id === trackId)) {
+                    item.classList.add('opacity-0');
+                    setTimeout(() => item.remove(), 300);
+                }
+            });
+
+            // Add only new songs
             selectedSongs.forEach(song => {
-                const li = document.createElement('li');
-                li.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg opacity-0 transition-opacity duration-300';
+                const existingItem = playlist.querySelector(`button[data-track-id="${song.id}"]`)?.parentElement;
+                if (!existingItem) {
+                    const li = document.createElement('li');
+                    li.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg opacity-0 transition-all duration-300 max-h-0 overflow-hidden';
 
-                const textDiv = document.createElement('div');
-                textDiv.className = 'flex flex-col';
+                    const textDiv = document.createElement('div');
+                    textDiv.className = 'flex flex-col';
 
-                const songName = document.createElement('span');
-                songName.className = 'font-semibold text-gray-800';
-                songName.textContent = song.name;
+                    const songName = document.createElement('span');
+                    songName.className = 'font-semibold text-gray-800';
+                    songName.textContent = song.name;
 
-                const artistName = document.createElement('span');
-                artistName.className = 'text-sm text-gray-500';
-                artistName.textContent = song.artist;
+                    const artistName = document.createElement('span');
+                    artistName.className = 'text-sm text-gray-500';
+                    artistName.textContent = song.artist;
 
-                textDiv.appendChild(songName);
-                textDiv.appendChild(artistName);
+                    textDiv.appendChild(songName);
+                    textDiv.appendChild(artistName);
 
-                const button = document.createElement('button');
-                button.className = 'px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors';
-                button.textContent = 'Remove';
-                button.setAttribute('data-track-id', song.id);
-                button.onclick = () => removeFromPlaylist(song.id);
+                    const button = document.createElement('button');
+                    button.className = 'px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors';
+                    button.textContent = 'Remove';
+                    button.setAttribute('data-track-id', song.id);
+                    button.onclick = () => removeFromPlaylist(song.id);
 
-                li.appendChild(textDiv);
-                li.appendChild(button);
-                playlist.appendChild(li);
-                // Trigger the fade in after a brief delay to ensure the transition works
-                setTimeout(() => li.classList.remove('opacity-0'), 50);
+                    li.appendChild(textDiv);
+                    li.appendChild(button);
+                    playlist.appendChild(li);
+
+                    // Trigger the animations after a brief delay
+                    requestAnimationFrame(() => {
+                        li.classList.remove('opacity-0', 'max-h-0');
+                        li.classList.add('max-h-24'); // Adjust this value based on your item height
+                    });
+                }
             });
         }
 
