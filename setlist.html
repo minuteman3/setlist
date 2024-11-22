@@ -45,7 +45,9 @@
                     <input type="text" id="playlist-name" placeholder="Enter playlist name (required)" required
                         class="w-full p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
 
-                    <ul id="playlist" class="space-y-2 mb-6"></ul>
+                    <div class="max-h-[calc(100vh-20rem)] overflow-y-auto mb-6">
+                        <ul id="playlist" class="space-y-2"></ul>
+                    </div>
 
                     <button id="create-playlist-button"
                         class="w-full px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
@@ -79,15 +81,27 @@
             }
         }
 
-        // Search functionality
-        let searchTimeout;
-        document.getElementById('search-box').addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => searchSongs(e.target.value), 500);
-        });
+        // Add this debounce function at the top of your script
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Replace the search event listener with this
+        document.getElementById('search-box').addEventListener('input',
+            debounce((e) => searchSongs(e.target.value), 300)  // 300ms delay
+        );
 
         async function searchSongs(query) {
-            if (!query) return;
+            const searchResults = document.getElementById('search-results');
+
+            if (!query) {
+                searchResults.innerHTML = '';
+                return;
+            }
 
             const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`, {
                 headers: {
@@ -96,7 +110,6 @@
             });
 
             const data = await response.json();
-            const searchResults = document.getElementById('search-results');
             searchResults.innerHTML = '';
 
             data.tracks.items.forEach(track => {
@@ -141,8 +154,20 @@
         }
 
         function removeFromPlaylist(trackId) {
-            selectedSongs = selectedSongs.filter(song => song.id !== trackId);
-            renderPlaylist();
+            const songElement = Array.from(document.getElementById('playlist').children)
+                .find(el => el.querySelector('[data-track-id="' + trackId + '"]'));
+
+            if (songElement) {
+                // Fade out animation
+                songElement.classList.add('opacity-0');
+                setTimeout(() => {
+                    selectedSongs = selectedSongs.filter(song => song.id !== trackId);
+                    renderPlaylist();
+                }, 300); // Match the duration of the transition
+            } else {
+                selectedSongs = selectedSongs.filter(song => song.id !== trackId);
+                renderPlaylist();
+            }
         }
 
         function renderPlaylist() {
@@ -150,7 +175,7 @@
             playlist.innerHTML = '';
             selectedSongs.forEach(song => {
                 const li = document.createElement('li');
-                li.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg';
+                li.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg opacity-0 transition-opacity duration-300';
 
                 const textDiv = document.createElement('div');
                 textDiv.className = 'flex flex-col';
@@ -169,11 +194,14 @@
                 const button = document.createElement('button');
                 button.className = 'px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors';
                 button.textContent = 'Remove';
+                button.setAttribute('data-track-id', song.id);
                 button.onclick = () => removeFromPlaylist(song.id);
 
                 li.appendChild(textDiv);
                 li.appendChild(button);
                 playlist.appendChild(li);
+                // Trigger the fade in after a brief delay to ensure the transition works
+                setTimeout(() => li.classList.remove('opacity-0'), 50);
             });
         }
 
