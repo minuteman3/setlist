@@ -160,11 +160,24 @@
             textDiv.appendChild(artistName);
 
             const button = document.createElement('button');
-            button.className = 'px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors';
-            button.textContent = 'Add';
-            button.addEventListener('click', () => {
-                addToPlaylist(track.id, track.name, track.artists[0].name);
-            });
+            // Add disabled styles
+            const isInPlaylist = selectedSongs.some(song => song.id === track.id);
+            button.className = `px-4 py-2 rounded-lg transition-colors ${isInPlaylist
+                    ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed'
+                    : 'bg-green-500 hover:bg-green-600'
+                } text-white`;
+            button.textContent = isInPlaylist ? 'Added' : 'Add';
+            button.disabled = isInPlaylist;
+
+            if (!isInPlaylist) {
+                button.addEventListener('click', () => {
+                    addToPlaylist(track.id, track.name, track.artists[0].name);
+                    // Update button state after adding
+                    button.disabled = true;
+                    button.textContent = 'Added';
+                    button.className = 'px-4 py-2 bg-gray-300 dark:bg-gray-600 text-white rounded-lg cursor-not-allowed';
+                });
+            }
 
             li.appendChild(textDiv);
             li.appendChild(button);
