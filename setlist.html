@@ -46,7 +46,9 @@
                         class="w-full p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4">
 
                     <div class="max-h-[calc(100vh-20rem)] overflow-y-auto mb-6">
-                        <ul id="playlist" class="space-y-2 transition-all duration-300"></ul>
+                        <ul id="playlist" class="space-y-2 transition-all duration-300">
+                            <li class="... transition-colors duration-300 ..."></li>
+                        </ul>
                     </div>
 
                     <button id="create-playlist-button"
@@ -215,7 +217,21 @@
                     // Trigger the animations after a brief delay
                     requestAnimationFrame(() => {
                         li.classList.remove('opacity-0', 'max-h-0');
-                        li.classList.add('max-h-24'); // Adjust this value based on your item height
+                        li.classList.add('max-h-24');
+
+                        // Scroll the new item into view
+                        const container = playlist.parentElement;
+                        container.scrollTo({
+                            top: container.scrollHeight,
+                            behavior: 'smooth'
+                        });
+
+                        // Add highlight animation
+                        li.classList.add('bg-green-100');
+                        setTimeout(() => {
+                            li.classList.remove('bg-green-100');
+                            li.classList.add('bg-gray-50');
+                        }, 1000); // Fade back to original color after 1s
                     });
                 }
             });
