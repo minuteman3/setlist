@@ -134,8 +134,14 @@
                     accessToken = storedToken;
                     document.getElementById('login-section').classList.add('hidden');
                     document.getElementById('search-section').classList.remove('hidden');
+
+                    // Get username and set Honeybadger context
+                    const username = await getUserInfo();
+                    if (username) {
+                        document.getElementById('username').textContent = `Welcome, ${username}!`;
+                        Honeybadger.setContext({ user_id: username });
+                    }
                 } else {
-                    // Token is invalid, remove it and show login
                     sessionStorage.removeItem('spotify_access_token');
                     document.getElementById('search-section').classList.add('hidden');
                     document.getElementById('login-section').classList.remove('hidden');
