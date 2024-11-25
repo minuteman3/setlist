@@ -11,12 +11,9 @@
             Sentry.init({
                 environment: 'production',
                 release: '1.0.0',
+                integrations: [],
                 tracesSampleRate: 1.0,
-                // This ensures we capture all errors
                 sampleRate: 1.0,
-                // Enable debug mode temporarily to see what's happening
-                debug: true,
-                // Make sure errors are actually sent
                 beforeSend(event) {
                     console.log('Sending event to Sentry:', event);
                     return event;
@@ -498,20 +495,6 @@
                 window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
-
-        // Add this after Sentry initialization
-        setTimeout(() => {
-            try {
-                // Deliberately cause an error
-                const nonExistentFunction();
-            } catch (error) {
-                Sentry.captureException(error, {
-                    tags: {
-                        type: 'test_error'
-                    }
-                });
-            }
-        }, 1000);
     </script>
 </body>
 
