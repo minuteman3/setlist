@@ -287,6 +287,7 @@
                 } text-white flex-shrink-0`;
             button.textContent = isInPlaylist ? 'Added' : 'Add';
             button.disabled = isInPlaylist;
+            button.setAttribute('data-track-id', track.id);
 
             if (!isInPlaylist) {
                 button.addEventListener('click', () => {
