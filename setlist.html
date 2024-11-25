@@ -5,22 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Setlist Creator</title>
-    <script src="https://js-de.sentry-cdn.com/1f50e5bb312d32384b4d2bb14e5d45c6.min.js" crossorigin="anonymous"></script>
-    <script>
-        Sentry.onLoad(function () {
-            Sentry.init({
-                environment: 'production',
-                release: '1.0.0',
-                integrations: [],
-                tracesSampleRate: 1.0,
-                sampleRate: 1.0,
-                beforeSend(event) {
-                    console.log('Sending event to Sentry:', event);
-                    return event;
-                }
-            });
-        });
-    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -163,13 +147,6 @@
                 });
             } catch (error) {
                 console.error('Search error:', error);
-                Sentry.captureException(error, {
-                    tags: {
-                        action: 'search',
-                        query: query
-                    }
-                });
-                // Optionally show user-friendly error message
                 const searchResults = document.getElementById('search-results');
                 searchResults.innerHTML = '<li class="text-red-500 p-4">Sorry, something went wrong with the search.</li>';
             }
