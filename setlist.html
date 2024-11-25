@@ -96,21 +96,33 @@
         let selectedSongs = [];
         let uploadedLogo = null;
 
-        // Login handling
-        document.getElementById('login-button').addEventListener('click', () => {
-            const scope = 'playlist-modify-public playlist-modify-private';
-            window.location.href = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
-        });
+        // At the start of your script
+        function handleAuth() {
+            // Check if we're returning from Spotify auth
+            const hash = window.location.hash;
+            if (hash) {
+                // Parse the access token from URL
+                const params = new URLSearchParams(hash.substring(1));
+                const accessToken = params.get('access_token');
+                if (accessToken) {
+                    // Store token in sessionStorage
+                    sessionStorage.setItem('spotify_access_token', accessToken);
+                    // Clean up URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
 
-        // Check if we're returning from Spotify auth
-        if (window.location.hash) {
-            const params = new URLSearchParams(window.location.hash.substring(1));
-            accessToken = params.get('access_token');
-            if (accessToken) {
+            // Check if we have a stored token
+            const storedToken = sessionStorage.getItem('spotify_access_token');
+            if (storedToken) {
+                accessToken = storedToken;
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('search-section').classList.remove('hidden');
             }
         }
+
+        // Call this when the page loads
+        handleAuth();
 
         // Add this debounce function at the top of your script
         function debounce(func, wait) {
@@ -126,6 +138,7 @@
             debounce((e) => searchSongs(e.target.value), 300)  // 300ms delay
         );
 
+        // Update the search function to use stored token
         async function searchSongs(query) {
             try {
                 const searchResults = document.getElementById('search-results');
@@ -135,9 +148,14 @@
                     return;
                 }
 
+                const token = sessionStorage.getItem('spotify_access_token');
+                if (!token) {
+                    throw new Error('No access token available');
+                }
+
                 const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`, {
                     headers: {
-                        'Authorization': `Bearer ${accessToken}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -154,8 +172,15 @@
                 });
             } catch (error) {
                 console.error('Search error:', error);
+                if (error.message === 'No access token available') {
+                    // Handle expired/missing token by redirecting to login
+                    sessionStorage.removeItem('spotify_access_token');
+                    document.getElementById('search-section').classList.add('hidden');
+                    document.getElementById('login-section').classList.remove('hidden');
+                }
                 const searchResults = document.getElementById('search-results');
                 searchResults.innerHTML = '<li class="text-red-500 p-4">Sorry, something went wrong with the search.</li>';
+                Honeybadger.notify(error);
             }
         }
 
