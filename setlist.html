@@ -135,22 +135,31 @@
             }
         }
 
+        function showFlashMessage(message) {
+            // Create flash message element
+            const flash = document.createElement('div');
+            flash.className = 'fixed top-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg transition-opacity duration-500';
+            flash.textContent = message;
+            document.body.appendChild(flash);
+
+            // Fade out and remove after 5 seconds
+            setTimeout(() => {
+                flash.classList.add('opacity-0');
+                setTimeout(() => flash.remove(), 500);
+            }, 5000);
+        }
+
         async function handleAuth() {
-            // Check if we're returning from Spotify auth
             const hash = window.location.hash;
             if (hash) {
-                // Parse the access token from URL
                 const params = new URLSearchParams(hash.substring(1));
                 const accessToken = params.get('access_token');
                 if (accessToken) {
-                    // Store token in sessionStorage
                     sessionStorage.setItem('spotify_access_token', accessToken);
-                    // Clean up URL
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }
 
-            // Check if we have a stored token and validate it
             const storedToken = sessionStorage.getItem('spotify_access_token');
             if (storedToken) {
                 const isValid = await validateToken(storedToken);
@@ -159,16 +168,16 @@
                     document.getElementById('login-section').classList.add('hidden');
                     document.getElementById('search-section').classList.remove('hidden');
 
-                    // Get and display username
+                    // Set Honeybadger context with username
                     const username = await getUserInfo();
                     if (username) {
-                        // Add this element to your HTML where you want to show the username
-                        document.getElementById('username').textContent = `Welcome, ${username}!`;
+                        Honeybadger.setContext({ user_id: username });
                     }
                 } else {
                     sessionStorage.removeItem('spotify_access_token');
                     document.getElementById('search-section').classList.add('hidden');
                     document.getElementById('login-section').classList.remove('hidden');
+                    showFlashMessage('Your session has expired. Please log in again.');
                 }
             }
         }
