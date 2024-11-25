@@ -693,8 +693,29 @@
             });
         }
 
-        // Add to your initialization code
+        // First, let's add some debug logging to the login function
+        function loginWithSpotify() {
+            console.log('Login clicked');
+
+            const clientId = '467b43d3d55845bfb6c5c8f0ab1e3f2f';
+            const redirectUri = encodeURIComponent(window.location.href);
+            const scope = encodeURIComponent('playlist-modify-public');
+
+            const url = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scope}`;
+            console.log('Redirect URL:', url);
+
+            window.location.href = url;
+        }
+
+        // Make sure the button has the click handler
         document.addEventListener('DOMContentLoaded', () => {
+            const loginButton = document.getElementById('login-button');
+            if (loginButton) {
+                loginButton.addEventListener('click', loginWithSpotify);
+            } else {
+                console.error('Login button not found');
+            }
+
             handleAuth();
             restoreLogoIfExists();
             initLogoUpload();
