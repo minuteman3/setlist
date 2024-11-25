@@ -348,7 +348,7 @@
                 const existingItem = playlist.querySelector(`button[data-track-id="${song.id}"]`)?.parentElement;
                 if (!existingItem) {
                     const li = document.createElement('li');
-                    li.className = 'flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg opacity-0 transition-all duration-300 max-h-0 overflow-hidden cursor-move';
+                    li.className = 'flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg opacity-0 transition-all duration-300 max-h-0 overflow-hidden cursor-move';
                     li.draggable = true;
 
                     // Add drag handle
@@ -397,6 +397,20 @@
                     requestAnimationFrame(() => {
                         li.classList.remove('opacity-0', 'max-h-0');
                         li.classList.add('max-h-24');
+
+                        // Scroll the new item into view
+                        const container = playlist.parentElement;
+                        container.scrollTo({
+                            top: container.scrollHeight,
+                            behavior: 'smooth'
+                        });
+
+                        // Update highlight colors for dark mode
+                        li.classList.add('bg-green-100', 'dark:bg-green-800/30');
+                        setTimeout(() => {
+                            li.classList.remove('bg-green-100', 'dark:bg-green-800/30');
+                            li.classList.add('bg-gray-50', 'dark:bg-gray-700/50');
+                        }, 1000);
                     });
                 }
             });
