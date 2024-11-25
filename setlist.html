@@ -55,14 +55,17 @@
             <!-- Left column -->
             <div class="md:w-1/2">
                 <div
-                    class="mb-6 p-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center">
+                    class="mb-6 p-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center relative">
                     <input type="file" id="logo-upload" accept="image/*" class="hidden">
-                    <label for="logo-upload" class="cursor-pointer">
-                        <div id="logo-preview" class="mx-auto mb-2 h-32 flex items-center justify-center">
-                            <span class="text-gray-500 dark:text-gray-400">Drag and drop a logo here, or click to
-                                upload</span>
-                        </div>
-                    </label>
+                    <img id="logo-preview" class="hidden max-h-32 mx-auto mb-2">
+                    <button onclick="clearLogo()" id="remove-logo"
+                        class="absolute top-2 right-2 text-red-500 hover:text-red-600 hidden">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                    <span class="text-gray-500 dark:text-gray-400">Drag and drop a logo here, or click to upload</span>
                 </div>
 
                 <input type="text" id="search-box"
@@ -520,21 +523,48 @@
             }
         });
 
-        function handleLogoUpload(e) {
-            const file = e.target.files[0];
-            if (file) {
-                handleLogoFile(file);
-            }
-        }
-
-        function handleLogoFile(file) {
+        function handleLogoUpload(file) {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                uploadedLogo = e.target.result;
-                logoPreview.innerHTML = `<img src="${uploadedLogo}" class="max-h-32 max-w-full mx-auto">`;
+            reader.onload = function (e) {
+                const logoImg = document.getElementById('logo-preview');
+                const removeBtn = document.getElementById('remove-logo');
+
+                logoImg.src = e.target.result;
+                logoImg.classList.remove('hidden');
+                removeBtn.classList.remove('hidden');
+
+                localStorage.setItem('setlist_logo', e.target.result);
             };
             reader.readAsDataURL(file);
         }
+
+        function clearLogo() {
+            const logoImg = document.getElementById('logo-preview');
+            const removeBtn = document.getElementById('remove-logo');
+
+            logoImg.src = '';
+            logoImg.classList.add('hidden');
+            removeBtn.classList.add('hidden');
+            localStorage.removeItem('setlist_logo');
+        }
+
+        function restoreLogoIfExists() {
+            const savedLogo = localStorage.getItem('setlist_logo');
+            if (savedLogo) {
+                const logoImg = document.getElementById('logo-preview');
+                const removeBtn = document.getElementById('remove-logo');
+
+                logoImg.src = savedLogo;
+                logoImg.classList.remove('hidden');
+                removeBtn.classList.remove('hidden');
+            }
+        }
+
+        // Call this when the page loads (add to your initialization code)
+        document.addEventListener('DOMContentLoaded', () => {
+            handleAuth();
+            restoreLogoIfExists();
+        });
 
         // Dark mode toggle functionality
         function initTheme() {
