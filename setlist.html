@@ -140,14 +140,18 @@
             }
         }
 
-        function showFlashMessage(message) {
-            // Create flash message element
+        function showFlashMessage(message, type = 'warning') {
+            // Define styles for different types
+            const styles = {
+                warning: 'bg-yellow-100 border-yellow-500 text-yellow-700',
+                error: 'bg-red-100 border-red-500 text-red-700'
+            };
+
             const flash = document.createElement('div');
-            flash.className = 'fixed top-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg transition-opacity duration-500';
+            flash.className = `fixed top-4 right-4 border-l-4 p-4 rounded shadow-lg transition-opacity duration-500 ${styles[type]}`;
             flash.textContent = message;
             document.body.appendChild(flash);
 
-            // Fade out and remove after 5 seconds
             setTimeout(() => {
                 flash.classList.add('opacity-0');
                 setTimeout(() => flash.remove(), 500);
@@ -182,7 +186,7 @@
                     sessionStorage.removeItem('spotify_access_token');
                     document.getElementById('search-section').classList.add('hidden');
                     document.getElementById('login-section').classList.remove('hidden');
-                    showFlashMessage('Your session has expired. Please log in again.');
+                    showFlashMessage('Your session has expired. Please log in again.', 'error');
                 }
             }
         }
@@ -206,19 +210,15 @@
 
         // Update the search function to use stored token
         async function searchSongs(query) {
+            const searchResults = document.getElementById('search-results');
+
+            if (!query) {
+                searchResults.innerHTML = '';
+                return;
+            }
+
             try {
-                const searchResults = document.getElementById('search-results');
-
-                if (!query) {
-                    searchResults.innerHTML = '';
-                    return;
-                }
-
                 const token = sessionStorage.getItem('spotify_access_token');
-                if (!token) {
-                    throw new Error('No access token available');
-                }
-
                 const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -226,6 +226,13 @@
                 });
 
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        sessionStorage.removeItem('spotify_access_token');
+                        document.getElementById('search-section').classList.add('hidden');
+                        document.getElementById('login-section').classList.remove('hidden');
+                        showFlashMessage('Your Spotify session has expired. Please log in again.', 'error');
+                        return;
+                    }
                     throw new Error(`Spotify API error: ${response.status} ${response.statusText}`);
                 }
 
@@ -238,15 +245,14 @@
                 });
             } catch (error) {
                 console.error('Search error:', error);
-                if (error.message === 'No access token available') {
-                    // Handle expired/missing token by redirecting to login
-                    sessionStorage.removeItem('spotify_access_token');
-                    document.getElementById('search-section').classList.add('hidden');
-                    document.getElementById('login-section').classList.remove('hidden');
-                }
-                const searchResults = document.getElementById('search-results');
-                searchResults.innerHTML = '<li class="text-red-500 p-4">Sorry, something went wrong with the search.</li>';
-                Honeybadger.notify(error);
+                Honeybadger.notify(error, {
+                    context: {
+                        action: 'search',
+                        query: query
+                    }
+                });
+                showFlashMessage('Sorry, something went wrong with the search.', 'error');
+                searchResults.innerHTML = '';
             }
         }
 
