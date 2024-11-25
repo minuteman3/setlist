@@ -11,9 +11,6 @@
             Sentry.init({
                 environment: 'production',
                 release: '1.0.0',
-                integrations: [
-                    new Sentry.BrowserTracing(),
-                ],
                 tracesSampleRate: 1.0,
                 // This ensures we capture all errors
                 sampleRate: 1.0,
