@@ -597,6 +597,38 @@
                 window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
+
+        // Add these event listeners to handle drag and drop
+        function initLogoUpload() {
+            const dropZone = document.querySelector('.border-dashed');
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-900/10');
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-green-500', 'bg-green-50', 'dark:bg-green-900/10');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-green-500', 'bg-green-50', 'dark:bg-green-900/10');
+
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    handleLogoUpload(file);
+                }
+            });
+        }
+
+        // Add this to your initialization code
+        document.addEventListener('DOMContentLoaded', () => {
+            handleAuth();
+            restoreLogoIfExists();
+            initLogoUpload();
+        });
     </script>
 </body>
 
