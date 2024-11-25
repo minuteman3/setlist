@@ -191,9 +191,6 @@
             }
         }
 
-        // Call this when the page loads
-        handleAuth();
-
         // Add this debounce function at the top of your script
         function debounce(func, wait) {
             let timeout;
@@ -603,12 +600,6 @@
                 uploadText.classList.add('hidden');
             }
         }
-
-        // Call this when the page loads (add to your initialization code)
-        document.addEventListener('DOMContentLoaded', () => {
-            handleAuth();
-            restoreLogoIfExists();
-        });
 
         // Dark mode toggle functionality
         function initTheme() {
