@@ -336,14 +336,33 @@
             });
 
             // Add only new songs
-            selectedSongs.forEach(song => {
+            selectedSongs.forEach((song, index) => {
                 const existingItem = playlist.querySelector(`button[data-track-id="${song.id}"]`)?.parentElement;
                 if (!existingItem) {
                     const li = document.createElement('li');
-                    li.className = 'flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg opacity-0 transition-all duration-300 max-h-0 overflow-hidden';
+                    li.className = 'flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg opacity-0 transition-all duration-300 max-h-0 overflow-hidden cursor-move';
+                    li.draggable = true;
+
+                    // Add drag handle
+                    const dragHandle = document.createElement('div');
+                    dragHandle.className = 'flex flex-col gap-1 cursor-grab';
+                    dragHandle.innerHTML = `
+                        <div class="flex gap-1">
+                            <div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                        </div>
+                        <div class="flex gap-1">
+                            <div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                        </div>
+                        <div class="flex gap-1">
+                            <div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                        </div>
+                    `;
 
                     const textDiv = document.createElement('div');
-                    textDiv.className = 'flex flex-col';
+                    textDiv.className = 'flex flex-col flex-grow';
 
                     const songName = document.createElement('span');
                     songName.className = 'font-semibold text-gray-800 dark:text-gray-100';
@@ -362,28 +381,14 @@
                     button.setAttribute('data-track-id', song.id);
                     button.onclick = () => removeFromPlaylist(song.id);
 
+                    li.appendChild(dragHandle);
                     li.appendChild(textDiv);
                     li.appendChild(button);
                     playlist.appendChild(li);
 
-                    // Trigger the animations after a brief delay
                     requestAnimationFrame(() => {
                         li.classList.remove('opacity-0', 'max-h-0');
                         li.classList.add('max-h-24');
-
-                        // Scroll the new item into view
-                        const container = playlist.parentElement;
-                        container.scrollTo({
-                            top: container.scrollHeight,
-                            behavior: 'smooth'
-                        });
-
-                        // Add highlight animation
-                        li.classList.add('bg-green-100', 'dark:bg-green-900/50');
-                        setTimeout(() => {
-                            li.classList.remove('bg-green-100', 'dark:bg-green-900/50');
-                            li.classList.add('bg-gray-50', 'dark:bg-gray-800');
-                        }, 1000); // Fade back to original color after 1s
                     });
                 }
             });
@@ -637,11 +642,49 @@
             });
         }
 
-        // Add this to your initialization code
+        // Add these drag and drop event handlers
+        function initDragAndDrop() {
+            const playlist = document.getElementById('playlist');
+            let draggedItem = null;
+
+            playlist.addEventListener('dragstart', (e) => {
+                draggedItem = e.target;
+                e.target.classList.add('opacity-50');
+            });
+
+            playlist.addEventListener('dragend', (e) => {
+                e.target.classList.remove('opacity-50');
+            });
+
+            playlist.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const targetItem = e.target.closest('li');
+                if (!targetItem || targetItem === draggedItem) return;
+
+                const rect = targetItem.getBoundingClientRect();
+                const midpoint = rect.top + rect.height / 2;
+                const moveAfter = e.clientY > midpoint;
+
+                if (moveAfter) {
+                    targetItem.after(draggedItem);
+                } else {
+                    targetItem.before(draggedItem);
+                }
+
+                // Update selectedSongs array to match new order
+                selectedSongs = Array.from(playlist.children).map(li => {
+                    const trackId = li.querySelector('button').getAttribute('data-track-id');
+                    return selectedSongs.find(song => song.id === trackId);
+                });
+            });
+        }
+
+        // Add to your initialization code
         document.addEventListener('DOMContentLoaded', () => {
             handleAuth();
             restoreLogoIfExists();
             initLogoUpload();
+            initDragAndDrop();
         });
     </script>
 </body>
