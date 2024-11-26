@@ -498,9 +498,12 @@
             const contentWidth = pageWidth - (margin * 2);
 
             // Add logo if uploaded
-            if (uploadedLogo) {
+            const savedLogo = localStorage.getItem('uploadedLogo');
+            if (savedLogo) {
                 const logoSize = 40;
-                doc.addImage(uploadedLogo, 'PNG', margin, startY, logoSize, logoSize);
+                // Extract file type from base64 string
+                const fileType = savedLogo.split(';')[0].split('/')[1].toUpperCase();
+                doc.addImage(savedLogo, fileType, margin, startY, logoSize, logoSize);
                 // If there's a logo, move the title to the right of it with more spacing
                 doc.setFontSize(24);
                 doc.setTextColor(46, 125, 50); // Green color
