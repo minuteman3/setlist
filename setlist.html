@@ -594,20 +594,67 @@
             }
         });
 
-        function handleLogoUpload(file) {
+        function handleLogoUpload(event) {
+            const file = event.target.files?.[0];
+
+            if (!file) {
+                flash('No file selected', 'error');
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                flash('Please select an image file', 'error');
+                return;
+            }
+
+            // Create an image element for compression
+            const img = new Image();
             const reader = new FileReader();
+
             reader.onload = function (e) {
-                const logoImg = document.getElementById('logo-preview');
-                const removeBtn = document.getElementById('remove-logo');
-                const uploadText = document.getElementById('logo-upload-text');
+                img.src = e.target.result;
+                img.onload = function () {
+                    // Create canvas for compression
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
 
-                logoImg.src = e.target.result;
-                logoImg.classList.remove('hidden');
-                removeBtn.classList.remove('hidden');
-                uploadText.classList.add('hidden');
+                    // Calculate new dimensions (max width/height of 800px)
+                    let width = img.width;
+                    let height = img.height;
+                    const maxSize = 800;
 
-                localStorage.setItem('setlist_logo', e.target.result);
+                    if (width > height && width > maxSize) {
+                        height = (height * maxSize) / width;
+                        width = maxSize;
+                    } else if (height > maxSize) {
+                        width = (width * maxSize) / height;
+                        height = maxSize;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    // Draw and compress
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+                    // Update the display
+                    const logoImg = document.getElementById('setlistLogo');
+                    if (logoImg) {
+                        logoImg.src = compressedDataUrl;
+                        logoImg.style.display = 'block';
+                    }
+
+                    // Save to localStorage
+                    localStorage.setItem('setlist_logo', compressedDataUrl);
+                };
             };
+
+            reader.onerror = function (error) {
+                flash('Error uploading image. Please try again.', 'error');
+                throw error; // Let Honeybadger catch this
+            };
+
             reader.readAsDataURL(file);
         }
 
