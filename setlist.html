@@ -268,11 +268,19 @@
             const li = document.createElement('li');
             li.className = 'flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm';
 
-            // Add Spotify logo
+            // Add clickable Spotify logo
+            const spotifyLogoLink = document.createElement('a');
+            spotifyLogoLink.href = track.external_urls.spotify;
+            spotifyLogoLink.target = '_blank';
+            spotifyLogoLink.className = 'hover:opacity-80 transition-opacity';
+
             const spotifyLogo = document.createElement('img');
             spotifyLogo.src = 'https://minuteman3.github.io/setlist/Spotify_icon.svg';
             spotifyLogo.className = 'h-6 w-6 object-contain';
             spotifyLogo.alt = 'Spotify';
+
+            spotifyLogoLink.appendChild(spotifyLogo);
+            li.appendChild(spotifyLogoLink);
 
             const textDiv = document.createElement('div');
             textDiv.className = 'flex flex-col flex-grow mr-4';
@@ -315,7 +323,6 @@
                 });
             }
 
-            li.appendChild(spotifyLogo);
             li.appendChild(textDiv);
             li.appendChild(button);
             return li;
