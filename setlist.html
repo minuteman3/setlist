@@ -595,13 +595,18 @@
         });
 
         function handleLogoUpload(event) {
-            const file = event.target.files?.[0];
+            if (!event || !event.target) {
+                flash('Invalid upload event', 'error');
+                return;
+            }
 
-            if (!file) {
+            const fileInput = event.target;
+            if (!fileInput.files || !fileInput.files[0]) {
                 flash('No file selected', 'error');
                 return;
             }
 
+            const file = fileInput.files[0];
             if (!file.type.startsWith('image/')) {
                 flash('Please select an image file', 'error');
                 return;
