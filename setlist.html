@@ -292,17 +292,23 @@
             songLink.className = 'font-semibold text-gray-800 dark:text-gray-100 hover:text-green-500 dark:hover:text-green-400 transition-colors';
             songLink.textContent = track.name;
 
-            const artistName = document.createElement('span');
-            artistName.className = 'text-sm text-gray-500 dark:text-gray-400';
-            artistName.textContent = track.artists[0].name;
+            // Make artist name a clickable link
+            const artistLink = document.createElement('a');
+            artistLink.href = track.artists[0].external_urls.spotify;
+            artistLink.target = '_blank';
+            artistLink.className = 'text-sm text-gray-500 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors';
+            artistLink.textContent = track.artists[0].name;
 
-            const albumName = document.createElement('span');
-            albumName.className = 'text-xs text-gray-400 dark:text-gray-500';
-            albumName.textContent = `from ${track.album.name}`;
+            // Make album name a clickable link
+            const albumLink = document.createElement('a');
+            albumLink.href = track.album.external_urls.spotify;
+            albumLink.target = '_blank';
+            albumLink.className = 'text-xs text-gray-400 dark:text-gray-500 hover:text-green-500 dark:hover:text-green-400 transition-colors';
+            albumLink.textContent = `from ${track.album.name}`;
 
             textDiv.appendChild(songLink);
-            textDiv.appendChild(artistName);
-            textDiv.appendChild(albumName);
+            textDiv.appendChild(artistLink);
+            textDiv.appendChild(albumLink);
 
             const button = document.createElement('button');
             const isInPlaylist = selectedSongs.some(song => song.id === track.id);
@@ -323,6 +329,7 @@
                 });
             }
 
+            li.appendChild(spotifyLogo);
             li.appendChild(textDiv);
             li.appendChild(button);
             return li;
