@@ -266,14 +266,23 @@
 
         function createSongItem(track) {
             const li = document.createElement('li');
-            li.className = 'flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm';
+            li.className = 'flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm';
+
+            // Add Spotify logo
+            const spotifyLogo = document.createElement('img');
+            spotifyLogo.src = 'https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Logo_RGB_Green.png';
+            spotifyLogo.className = 'h-6 w-6 object-contain';
+            spotifyLogo.alt = 'Spotify';
 
             const textDiv = document.createElement('div');
             textDiv.className = 'flex flex-col flex-grow mr-4';
 
-            const songName = document.createElement('span');
-            songName.className = 'font-semibold text-gray-800 dark:text-gray-100';
-            songName.textContent = track.name;
+            // Make song name a clickable link
+            const songLink = document.createElement('a');
+            songLink.href = track.external_urls.spotify;
+            songLink.target = '_blank';
+            songLink.className = 'font-semibold text-gray-800 dark:text-gray-100 hover:text-green-500 dark:hover:text-green-400 transition-colors';
+            songLink.textContent = track.name;
 
             const artistName = document.createElement('span');
             artistName.className = 'text-sm text-gray-500 dark:text-gray-400';
@@ -283,7 +292,7 @@
             albumName.className = 'text-xs text-gray-400 dark:text-gray-500';
             albumName.textContent = `from ${track.album.name}`;
 
-            textDiv.appendChild(songName);
+            textDiv.appendChild(songLink);
             textDiv.appendChild(artistName);
             textDiv.appendChild(albumName);
 
@@ -306,6 +315,7 @@
                 });
             }
 
+            li.appendChild(spotifyLogo);
             li.appendChild(textDiv);
             li.appendChild(button);
             return li;
