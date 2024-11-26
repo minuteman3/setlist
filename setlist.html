@@ -17,7 +17,6 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-T6V5FE4ZPD');
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -192,6 +191,8 @@
                     const username = await getUserInfo();
                     if (username) {
                         Honeybadger.setContext({ user_id: username });
+                        gtag('set', { user_id: username });
+                        gtag('event', 'login');
                     }
                 } else {
                     sessionStorage.removeItem('spotify_access_token');
