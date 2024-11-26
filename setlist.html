@@ -121,6 +121,9 @@
                         'Authorization': `Bearer ${token}`
                     }
                 });
+                if (response.status === 403) {
+                    throw new Error('Spotify API returned 403 Forbidden');
+                }
                 return response.ok;
             } catch {
                 return false;
