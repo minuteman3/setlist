@@ -707,7 +707,12 @@
 
             const clientId = 'ae7f423bb8af444eb5407e92650e6f32';
             const redirectUri = encodeURIComponent('https://minuteman3.github.io/setlist/setlist.html');
-            const scope = encodeURIComponent('playlist-modify-public');
+            const scopes = [
+                'playlist-modify-public',
+                'user-read-private',
+                'user-read-email'
+            ];
+            const scope = encodeURIComponent(scopes.join(' '));
 
             const url = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scope}`;
             console.log('Redirect URL:', url);
