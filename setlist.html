@@ -490,9 +490,35 @@
                     })
                 });
 
+                // Set the playlist image
+                const savedLogo = localStorage.getItem('setlist_logo');
+                if (savedLogo) {
+                    try {
+                        // Extract just the base64 data part (remove the data:image/jpeg;base64, prefix)
+                        const base64Data = savedLogo.split(',')[1];
+
+                        // Set the playlist image
+                        await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/images`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'image/jpeg'
+                            },
+                            body: base64Data
+                        });
+                    } catch (error) {
+                        console.error('Error setting playlist image:', error);
+                        Honeybadger.notify(error, {
+                            context: {
+                                action: 'set_playlist_image',
+                                playlist_id: playlist.id
+                            }
+                        });
+                    }
+                }
+
                 // Create a new window for the PDF content
                 const printWindow = window.open('', '_blank');
-                const savedLogo = localStorage.getItem('setlist_logo');
 
                 // Generate HTML content
                 printWindow.document.write(`
@@ -866,7 +892,8 @@
             const clientId = 'ae7f423bb8af444eb5407e92650e6f32';
             const redirectUri = encodeURIComponent('https://minuteman3.github.io/setlist/setlist.html');
             const scopes = [
-                'playlist-modify-public'
+                'playlist-modify-public',
+                'ugc-image-upload'
             ];
             const scope = encodeURIComponent(scopes.join(' '));
 
